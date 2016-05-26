@@ -26,8 +26,11 @@ import com.example.android.system.runtimepermissions.contacts.ContactsFragment;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -35,6 +38,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import android.widget.ViewAnimator;
 
 import common.activities.SampleActivityBase;
@@ -43,7 +47,7 @@ import common.activities.SampleActivityBase;
  * Launcher Activity that demonstrates the use of runtime permissions for Android M.
  * It contains a summary sample description, sample log and a Fragment that calls callbacks on this
  * Activity to illustrate parts of the runtime permissions API.
- * <p>
+ * <p/>
  * This Activity requests permissions to access the camera ({@link android.Manifest.permission#CAMERA})
  * when the 'Show Camera' button is clicked to display the camera preview.
  * Contacts permissions (({@link android.Manifest.permission#READ_CONTACTS} and ({@link
@@ -59,17 +63,17 @@ import common.activities.SampleActivityBase;
  * in
  * a callback to the {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback}
  * interface.
- * <p>
+ * <p/>
  * Before requesting permissions, {@link ActivityCompat#shouldShowRequestPermissionRationale(Activity,
  * String)}
  * should be called to provide the user with additional context for the use of permissions if they
  * have been denied previously.
- * <p>
+ * <p/>
  * If this sample is executed on a device running a platform version below M, all permissions
  * declared
  * in the Android manifest file are always granted at install time and cannot be requested at run
  * time.
- * <p>
+ * <p/>
  * This sample targets the M platform and must therefore request permissions at runtime. Change the
  * targetSdk in the file 'Application/build.gradle' to 22 to run the application in compatibility
  * mode.
@@ -77,7 +81,7 @@ import common.activities.SampleActivityBase;
  * APIs provide compatibility data.
  * For example the camera cannot be opened or an empty list of contacts is returned. No special
  * action is required in this case.
- * <p>
+ * <p/>
  * (This class is based on the MainActivity used in the SimpleFragment sample template.)
  */
 public class MainActivity extends SampleActivityBase
@@ -150,17 +154,17 @@ public class MainActivity extends SampleActivityBase
             // For example if the user has previously denied the permission.
             Log.i(TAG,
                     "Displaying camera permission rationale to provide additional context.");
-            Snackbar.make(mLayout, R.string.permission_camera_rationale,
-                    Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.ok, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.CAMERA},
-                                    REQUEST_CAMERA);
-                        }
-                    })
-                    .show();
+                Snackbar.make(mLayout, R.string.permission_camera_rationale,
+                        Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.ok, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.CAMERA},
+                                        REQUEST_CAMERA);
+                            }
+                        })
+                        .show();
         } else {
 
             // Camera permission has not been granted yet. Request it directly.
@@ -232,6 +236,13 @@ public class MainActivity extends SampleActivityBase
         // END_INCLUDE(contacts_permission_request)
     }
 
+    /**
+     * 打开该应用设置页面
+     * @param view
+     */
+    public void openSettings(View view) {
+        startInstalledAppDetailsActivity(this);
+    }
 
     /**
      * Display the {@link CameraPreviewFragment} in the content area if the required Camera
@@ -262,7 +273,7 @@ public class MainActivity extends SampleActivityBase
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults) {
 
         if (requestCode == REQUEST_CAMERA) {
             // BEGIN_INCLUDE(permission_result)
@@ -341,7 +352,9 @@ public class MainActivity extends SampleActivityBase
         return super.onOptionsItemSelected(item);
     }
 
-    /** Create a chain of targets that will receive log data */
+    /**
+     * Create a chain of targets that will receive log data
+     */
     @Override
     public void initializeLogging() {
         // Wraps Android's native log framework.
@@ -379,5 +392,19 @@ public class MainActivity extends SampleActivityBase
         // This method sets up our custom logger, which will print all log messages to the device
         // screen, as well as to adb logcat.
         initializeLogging();
+    }
+
+    public static void startInstalledAppDetailsActivity(final Activity context) {
+        if (context == null) {
+            return;
+        }
+        final Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.setData(Uri.parse("package:" + context.getPackageName()));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        context.startActivity(intent);
     }
 }
